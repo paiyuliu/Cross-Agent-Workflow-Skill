@@ -12,6 +12,7 @@ diagnose    Check whether the required driver for a given SQLAlchemy URL is
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import re
 import sys
@@ -115,7 +116,6 @@ def _driver_info(url: str) -> tuple[str, str, str] | None:
 
 def _check_import(module_name: str) -> bool:
     """Return True if the Python module can be imported."""
-    import importlib
     try:
         importlib.import_module(module_name)
         return True
@@ -222,12 +222,19 @@ def run_query(url: str, sql: str, limit: int) -> dict[str, Any]:
             "rows": [dict(zip(columns, row)) for row in rows],
             "limited_to": limit,
         }
-    except Exception as exc:  # noqa: BLE001
-        # Redact the URL in the error message just in case it appears there
+    except Exception as exc:  # noqa: BLE001 – catch all DB/driver errors for safe JSON output
+        from sqlalchemy.exc import OperationalError, DatabaseError, SQLAlchemyError
+        error_type = (
+            "operational_error" if isinstance(exc, OperationalError)
+            else "database_error" if isinstance(exc, DatabaseError)
+            else "sqlalchemy_error" if isinstance(exc, SQLAlchemyError)
+            else "connection_error"
+        )
+        # Redact the URL from the error message in case the driver echoes it
         msg = redact_url(str(exc))
         return {
             "ok": False,
-            "error": "connection_error",
+            "error": error_type,
             "redacted_url": redact_url(url),
             "detail": msg,
         }
