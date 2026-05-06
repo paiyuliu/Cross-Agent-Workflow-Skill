@@ -1,0 +1,32 @@
+# Optional database driver dependencies for the cross-agent-workflow skill.
+#
+# Install the drivers for the databases you need. The base requirements.txt
+# already includes SQLAlchemy; these packages add the dialect-specific connectors.
+#
+# Usage:
+#   pip install -r SKILL/requirements-db.txt          # install all optional DB drivers
+#   pip install PyMySQL                                # MySQL only
+#   pip install mariadb                                # MariaDB native connector only
+#   pip install pyodbc                                 # Microsoft SQL Server only (also needs ODBC driver)
+#   pip install oracledb                               # Oracle Database only (thin mode, no Oracle Client needed)
+#
+# Run the diagnostics tool to check which drivers are available:
+#   python SKILL/scripts/db_guard.py diagnose --url "mysql+pymysql://user:pass@host/db"
+
+# MySQL: pure-Python driver, no system libraries required
+PyMySQL>=1.1.0
+
+# MariaDB: native MariaDB Connector/Python (requires libmariadb on the system)
+# Install only when targeting MariaDB with the mariadb:// or mariadb+mariadbconnector:// dialect.
+# MySQL+PyMySQL also works against MariaDB and has no system dependency.
+mariadb>=1.1.0
+
+# Microsoft SQL Server: ODBC bridge
+# Requires the "Microsoft ODBC Driver for SQL Server" to be installed on the system.
+# See: https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server
+pyodbc>=5.0.0
+
+# Oracle Database: pure-Python thin client (no Oracle Instant Client required)
+# Supports Oracle Database 12.1 and later via the thin mode.
+# See: https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
+oracledb>=2.0.0
