@@ -44,13 +44,22 @@ python SKILL/scripts/pdf_skill.py "document.pdf" --format json --engine pdfplumb
 - Load `references/database_crud.md` before touching a database.
 - Use `scripts/db_guard.py query` for read-only SQL.
 - Use `scripts/db_guard.py plan-write` for any non-query SQL; do not execute the resulting plan until the user confirms.
-- Use SQLAlchemy URLs for portability, for example `sqlite:///local.db`, `postgresql+psycopg://...`, `mysql+pymysql://...`, or `mssql+pyodbc://...`.
+- Use `scripts/db_guard.py diagnose` to check driver availability and get install guidance before connecting.
+- Use SQLAlchemy URLs for portability across all supported databases:
+  - SQLite: `sqlite:///local.db`
+  - PostgreSQL: `postgresql+psycopg://user:pass@host:5432/dbname`
+  - MySQL: `mysql+pymysql://user:pass@host:3306/dbname`
+  - MariaDB: `mysql+pymysql://user:pass@host:3306/dbname` (or `mariadb+mariadbconnector://...`)
+  - Microsoft SQL Server: `mssql+pyodbc://user:pass@host:1433/dbname?driver=ODBC+Driver+18+for+SQL+Server`
+  - Oracle: `oracle+oracledb://user:pass@host:1521/?service_name=ORCLPDB1`
+- Install database-specific drivers from `requirements-db.txt` when needed (see below).
 
 Example:
 
 ```bash
 python SKILL/scripts/db_guard.py query --url "sqlite:///sample.db" --sql "select * from users limit 5"
 python SKILL/scripts/db_guard.py plan-write --url "sqlite:///sample.db" --sql "update users set active = 0 where last_login < '2025-01-01'"
+python SKILL/scripts/db_guard.py diagnose --url "oracle+oracledb://user:pass@host:1521/?service_name=ORCLPDB1"
 ```
 
 ## GitHub and Gitea Workflow
@@ -72,7 +81,14 @@ python SKILL/scripts/git_collab.py plan-api-write --platform github --method POS
 ## Dependency Model
 
 - Scripts should fail with clear missing-dependency messages instead of stack traces.
-- Install optional dependencies from `requirements.txt` only when the task needs full Office/PDF/DB/API support.
+- Install base dependencies from `requirements.txt` for full Office/PDF/DB/API support.
+- Install optional database drivers from `requirements-db.txt` on-demand when the task requires a specific database:
+  - `pip install -r SKILL/requirements-db.txt` — all optional DB drivers
+  - `pip install PyMySQL` — MySQL or MariaDB (PyMySQL dialect, pure-Python)
+  - `pip install mariadb` — MariaDB native connector (requires libmariadb on the system)
+  - `pip install pyodbc` — Microsoft SQL Server (requires ODBC driver on OS)
+  - `pip install oracledb` — Oracle Database (thin mode, no Oracle Client required)
+- Use `scripts/db_guard.py diagnose --url ...` to check which driver is needed before installing.
 - Keep new scripts Python-first and portable across agents.
 
 ## Agent Enablement
