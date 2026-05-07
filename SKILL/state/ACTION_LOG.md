@@ -227,3 +227,21 @@
 - actor: agent
 - action: doc-extract
 - details: test.pdf: ok=True
+
+## 2026-05-07T05:31:27Z
+
+- actor: codex
+- action: add-work-report-reference
+- details: Added reusable work-report Markdown template, xlsx field definition table, and pptx page outline reference.
+
+## 2026-05-07T05:31:27Z
+
+- actor: codex
+- action: update-canonical-docs
+- details: Linked the new work-report template reference from SKILL.md and README.md.
+
+## 2026-05-07T05:31:27Z
+
+- actor: codex
+- action: update-handoff
+- details: Refreshed handoff state to include the work-report template capability and follow-up notes.

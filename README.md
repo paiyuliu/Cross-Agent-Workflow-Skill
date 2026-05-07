@@ -33,6 +33,7 @@ This file and `SKILL/SKILL.md` are the canonical docs. Other markdown files are 
 - Office/PDF processing: `.docx`, `.pptx`, `.xlsx`, `.pdf`
 - Advanced extraction: layout-aware PDF, table detection, metadata
 - Batch pipelines: mixed file types, structured output, error recovery
+- Work-report artifacts: reusable Markdown templates, xlsx field specs, and pptx outlines
 - Guarded database CRUD: read allowed, writes require explicit confirmation plan
 - GitHub/Gitea collaboration: local status/diff, safe reads, planned writes
 - Cross-agent continuity: persistent handoff and action logs
@@ -97,6 +98,7 @@ python SKILL/scripts/git_collab.py local-diff --repo . --stat
 Only if needed:
 
 - `SKILL/references/extraction_guide.md`
+- `SKILL/references/work_report_templates.md`
 - `SKILL/references/database_crud.md`
 - `SKILL/references/git_platforms.md`
 - `SKILL/references/agent_enablement.md`

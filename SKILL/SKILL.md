@@ -145,6 +145,7 @@ python SKILL/scripts/git_collab.py plan-api-write --platform github --method POS
 Read references only when required by task type:
 
 - Document/PDF details: `references/office_pdf.md`, `references/extraction_guide.md`
+- Work-report templates: `references/work_report_templates.md`
 - Database details: `references/database_crud.md`
 - Git platform APIs: `references/git_platforms.md`
 - Agent setup docs: `references/agent_enablement.md`
