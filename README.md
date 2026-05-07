@@ -1,7 +1,5 @@
 # Cross-Agent Workflow Skill
 
-This repository contains a portable `cross-agent-workflow` skill for AI agents that need to work across business documents, databases, and Git collaboration platforms. The skill is designed to keep work reproducible between agents by pairing operating instructions with small Python helper scripts and persistent handoff records.
-
 ```
 最近很少寫程式，反而是一直在做文件然後寫分析報告、工作報告，有點乏了! 請御三家 AI Agent 幫我寫個skill template，以後就可以請他們幫我完成文書工作了!
 下面是我的 prompt
@@ -23,58 +21,90 @@ request:
 Please assist with the planning. During implementation, the AI ​​agent must record the implementation so that subsequent AI agents can take over without relying on AI agent sessions.
 2. Please write a document instructing users on how to use these skills with Codex CLI, Gemini CLI, Claude Code, and GitHub Copilot. If the usage differs between the GitHub Copilot CLI and the VS Code extension, please also explain.
 3. I forgot OpenCode! Please help update the user documentation.
-
+This file and `SKILL/SKILL.md` are the canonical docs. Other markdown files are optional deep references.
 ```
 
+This repository provides a Python-first, portable skill set for AI agents that need to work on documents, databases, and Git collaboration tasks with clear safety guardrails.
 
-## What This Skill Covers
+This file and `SKILL/SKILL.md` are the canonical docs. Other markdown files are optional deep references.
 
-- Office and PDF inspection for `.docx`, `.pptx`, `.xlsx`, and `.pdf` files.
-- Fuller document extraction, including PDF metadata, page text, tables, and layout-aware analysis when optional PDF dependencies are installed.
-- Guarded database CRUD workflows that allow read-only queries and require a confirmation plan before any write operation.
-- GitHub and Gitea collaboration workflows for local status, diffs, safe API reads, and planned API writes.
-- Cross-agent continuity through `state/HANDOFF.md` and `state/ACTION_LOG.md`.
+## Scope
 
-## Folder Layout
+- Office/PDF processing: `.docx`, `.pptx`, `.xlsx`, `.pdf`
+- Advanced extraction: layout-aware PDF, table detection, metadata
+- Batch pipelines: mixed file types, structured output, error recovery
+- Guarded database CRUD: read allowed, writes require explicit confirmation plan
+- GitHub/Gitea collaboration: local status/diff, safe reads, planned writes
+- Cross-agent continuity: persistent handoff and action logs
 
-- `SKILL/SKILL.md` is the main skill manifest and operating guide.
-- `SKILL/scripts/` contains reusable Python tools for documents, PDFs, databases, Git collaboration, and action logging.
-- `SKILL/references/` contains deeper workflow notes for Office/PDF handling, database CRUD, Git platforms, and enabling the skill in other agents.
-- `SKILL/state/` stores handoff and action-log files so work can continue without relying only on chat history.
-- `SKILL/requirements.txt` lists optional dependencies for full document, PDF, database, and API support.
-
-## Main Scripts
-
-- `doc_inspect.py`: concise JSON or Markdown summaries of Office and PDF files.
-- `doc_extract.py`: fuller text and table extraction from supported document formats.
-- `pdf_skill.py`: advanced PDF extraction with automatic engine selection, layout-aware extraction, table detection, page analysis, and metadata support.
-- `db_guard.py`: read-only SQL execution plus write-operation planning that highlights risky mutations.
-- `git_collab.py`: local Git summaries, GitHub/Gitea API reads, and API write-plan generation.
-- `log_action.py`: structured updates for the action log and handoff file.
-
-## Basic Usage
+## Quick Start
 
 ```bash
-python SKILL/scripts/doc_inspect.py "input.docx" --format markdown
-python SKILL/scripts/doc_extract.py "report.pdf" --format json --max-chars 20000
-python SKILL/scripts/pdf_skill.py "document.pdf" --format markdown --engine auto
+pip install -r SKILL/requirements.txt
+python SKILL/scripts/batch_extractor.py --check-deps
+python SKILL/scripts/doc_inspect.py "sample.pdf" --format markdown
+```
+
+## Core Scripts
+
+- `SKILL/scripts/doc_inspect.py`: fast structure inspection
+- `SKILL/scripts/doc_extract.py`: full text/table extraction
+- `SKILL/scripts/pdf_skill.py`: advanced PDF extraction (`auto`, `pdfplumber`, `pypdf`)
+- `SKILL/scripts/batch_extractor.py`: batch processing for 10+ files
+- `SKILL/scripts/db_guard.py`: database query + write-plan workflow
+- `SKILL/scripts/git_collab.py`: local Git summaries + API read/write planning
+- `SKILL/scripts/log_action.py`: append action and handoff records
+
+## Common Commands
+
+```bash
+# Inspect one document
+python SKILL/scripts/doc_inspect.py "report.pdf" --format markdown
+
+# Extract one document
+python SKILL/scripts/doc_extract.py "report.pdf" --format json --max-chars 50000
+
+# Advanced PDF (layout-aware)
+python SKILL/scripts/pdf_skill.py "form.pdf" --engine pdfplumber --format json
+
+# Batch extraction
+python SKILL/scripts/batch_extractor.py --files "*.pdf" "*.xlsx" --output extracted/ --format json
+
+# DB read-only query
 python SKILL/scripts/db_guard.py query --url "sqlite:///sample.db" --sql "select * from users limit 5"
+
+# DB write planning (requires user confirmation before execution)
+python SKILL/scripts/db_guard.py plan-write --url "sqlite:///sample.db" --sql "update users set active = 0 where id = 1"
+
+# Git collaboration
 python SKILL/scripts/git_collab.py local-status --repo .
 python SKILL/scripts/git_collab.py local-diff --repo . --stat
 ```
 
-## Safety Model
+## Safety Rules
 
-Database write operations, including create, update, delete, truncate, drop, alter, grant, revoke, merge, and procedure execution, must be planned first and executed only after explicit user approval. GitHub and Gitea write operations, such as creating issues, commenting, labeling, merging, closing, reopening, deleting, releasing, or pushing, also require a confirmation plan before execution.
+- Never execute database write operations without explicit user confirmation.
+- Never perform GitHub/Gitea write actions without a confirmation plan.
+- Prefer writing modified Office files to new output files.
+- Do not store tokens, passwords, or DB credentials in this repository.
 
-Modified Office files should be written as new output files unless the user explicitly asks to overwrite an existing file. Access tokens, passwords, and database credentials should not be stored in this skill directory.
+## Minimal Reading Path for Agents
 
-## Dependencies
+1. `SKILL/SKILL.md` (required operating guide)
+2. `SKILL/state/HANDOFF.md` (current state)
+3. `SKILL/state/ACTION_LOG.md` (recent actions)
 
-The scripts are Python-first and intended to fail with clear missing-dependency messages. Install the optional packages in `SKILL/requirements.txt` only when a task needs full Office, PDF, database, or API support:
+Only if needed:
 
-```bash
-pip install -r SKILL/requirements.txt
-```
+- `SKILL/references/extraction_guide.md`
+- `SKILL/references/database_crud.md`
+- `SKILL/references/git_platforms.md`
+- `SKILL/references/agent_enablement.md`
 
-The current handoff notes indicate that scripts have been compiled and partially validated, but full document and API testing should be repeated after dependencies are installed in the active Python environment.
+## Notes
+
+- The repository includes two additional extraction-oriented skills:
+  - `doc-extraction-advanced`
+  - `batch-document-processor`
+- Recommended output for automation is JSON.
+- For scanned PDFs, run OCR before extraction (OCR is not built into these scripts).

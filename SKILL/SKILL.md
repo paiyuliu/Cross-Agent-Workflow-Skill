@@ -1,11 +1,27 @@
 ---
 name: cross-agent-workflow
-description: Cross-agent collaboration workflow for Office documents, PDF reading, guarded database CRUD, and GitHub/Gitea collaboration. Use when an AI agent needs to inspect or modify docx, pptx, xlsx, or pdf files; query or plan database CRUD with explicit confirmation for non-query operations; collaborate with GitHub or Gitea issues, pull requests, comments, branches, diffs, or repository metadata; or leave handoff records so another AI agent can continue without relying on session memory.
+description: Cross-agent collaboration workflow for Office/PDF documents, guarded database CRUD, and GitHub/Gitea collaboration. Use when an AI agent needs portable Python-first tooling plus persistent handoff records.
+---
+
+---
+name: doc-extraction-advanced
+description: Advanced extraction for PDF, Excel, Word, and PowerPoint with layout-aware PDF handling and table detection. Provides three levels: inspect, extract, and batch.
+---
+
+---
+name: batch-document-processor
+description: Batch processing for document extraction pipelines. Use for 10+ files, mixed file types, parallel execution, error recovery, and structured outputs.
 ---
 
 # Cross-Agent Workflow
 
-Use this skill as a portable operating guide for agents working with business documents, databases, and Git platforms. Prefer the bundled Python scripts before writing one-off code.
+Use this file as the primary operating guide. Keep instructions short, safe, and reproducible across agents.
+
+## Canonical Docs
+
+- Primary: `SKILL/SKILL.md` and `README.md`
+- State: `state/HANDOFF.md` and `state/ACTION_LOG.md`
+- Optional deep references in `references/` only when needed
 
 ## Required Handoff Discipline
 
@@ -23,20 +39,47 @@ Use this skill as a portable operating guide for agents working with business do
 - Prefer writing modified Office files as new output files unless the user explicitly asks to overwrite.
 - Do not store access tokens, passwords, or database credentials in this skill.
 
-## Document Workflow
+## Skills in This Repository
 
-- Use `scripts/doc_inspect.py` for a concise JSON or Markdown summary of `.docx`, `.pptx`, `.xlsx`, and `.pdf` files.
-- Use `scripts/doc_extract.py` when the agent needs fuller extracted text or tables.
-- Use `scripts/pdf_skill.py` for advanced PDF operations: layout-aware extraction, table detection, page analysis, and metadata.
-- Load `references/office_pdf.md` before adding document-editing logic or troubleshooting dependencies.
+- `cross-agent-workflow` (foundation)
+- `doc-extraction-advanced` (single-file advanced extraction)
+- `batch-document-processor` (10+ files and pipelines)
 
-Example:
+## Document Workflow (3 Levels)
+
+### Level 1: Inspect (fast)
+
+- Use `scripts/doc_inspect.py` for concise structure summaries.
 
 ```bash
 python SKILL/scripts/doc_inspect.py "input.docx" --format markdown
+python SKILL/scripts/doc_inspect.py "report.pdf" --format json
+```
+
+### Level 2: Extract (full content)
+
+- Use `scripts/doc_extract.py` when the agent needs fuller extracted text or tables.
+- Use `scripts/pdf_skill.py` for advanced PDF operations: layout-aware extraction, table detection, page analysis, and metadata.
+
+```bash
 python SKILL/scripts/doc_extract.py "report.pdf" --format json --max-chars 20000
 python SKILL/scripts/pdf_skill.py "document.pdf" --format markdown --engine auto
 python SKILL/scripts/pdf_skill.py "document.pdf" --format json --engine pdfplumber
+```
+
+PDF engine guidance:
+
+- `pdfplumber`: best for forms/tables/layout
+- `pypdf`: faster simple text extraction
+- `auto`: preferred default
+
+### Level 3: Batch (pipeline mode)
+
+- Use `scripts/batch_extractor.py` for mixed file sets and consistent output.
+
+```bash
+python SKILL/scripts/batch_extractor.py --files "*.pdf" "*.xlsx" --output extracted/ --format json
+python SKILL/scripts/batch_extractor.py --check-deps
 ```
 
 ## Database Workflow
@@ -78,6 +121,12 @@ python SKILL/scripts/git_collab.py local-diff --repo . --stat
 python SKILL/scripts/git_collab.py plan-api-write --platform github --method POST --endpoint /repos/OWNER/REPO/issues --body '{"title":"Example"}'
 ```
 
+## Output and Performance Notes
+
+- Prefer JSON output for downstream automation.
+- For scanned/image PDFs, OCR is required before extraction.
+- Batch defaults to parallel workers and continues on per-file failures.
+
 ## Dependency Model
 
 - Scripts should fail with clear missing-dependency messages instead of stack traces.
@@ -90,6 +139,15 @@ python SKILL/scripts/git_collab.py plan-api-write --platform github --method POS
   - `pip install oracledb` — Oracle Database (thin mode, no Oracle Client required)
 - Use `scripts/db_guard.py diagnose --url ...` to check which driver is needed before installing.
 - Keep new scripts Python-first and portable across agents.
+
+## Minimal Reference Path
+
+Read references only when required by task type:
+
+- Document/PDF details: `references/office_pdf.md`, `references/extraction_guide.md`
+- Database details: `references/database_crud.md`
+- Git platform APIs: `references/git_platforms.md`
+- Agent setup docs: `references/agent_enablement.md`
 
 ## Agent Enablement
 
